@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Leaves 落葉</title>
+<meta name="theme-color" content="#f4efe0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#f4efe0;
+  --bg2:#e9e2cc;
+  --ink:#2c2a1f;
+  --green:#3f7a4a;
+  --green-dark:#2c5a35;
+  --gold:#d6a234;
+  --red:#b6442f;
+  --card:#fffdf6;
+  --card-shadow:0 3px 10px rgba(40,30,10,.28);
+  --radius:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+.hidden{display:none !important;}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);font-family:"PingFang TC","Microsoft JhengHei","Hiragino Sans",system-ui,sans-serif;color:var(--ink);}
+#app{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 10%,var(--bg2),var(--bg));}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);transition:opacity .25s ease;}
+.screen.hidden{display:none;}
+h1.logo{font-size:clamp(34px,10vw,56px);color:var(--green-dark);margin:0;font-family:Georgia,"Noto Serif TC",serif;letter-spacing:2px;text-shadow:0 2px 0 rgba(255,255,255,.5);}
+.subtitle{margin-top:-10px;color:#6b6b55;font-size:14px;letter-spacing:4px;}
+.btn{--btn-dark:var(--green-dark);appearance:none;border:none;border-radius:999px;padding:14px 36px;font-size:17px;font-weight:600;color:#fff;background:var(--green);box-shadow:0 4px 0 var(--btn-dark);cursor:pointer;transition:transform .08s,box-shadow .08s;}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--btn-dark);}
+.btn.secondary{--btn-dark:#6f6240;background:#9c8a5e;}
+.btn.accent{--btn-dark:#2a5663;background:#3d7a8c;}
+.btn.muted{--btn-dark:#624d76;background:#8a6fa3;}
+.btn.ghost{--btn-dark:none;background:transparent;color:var(--green-dark);box-shadow:none;border:2px solid var(--green-dark);padding:12px 34px;}
+.btn.ghost:active{box-shadow:none;}
+.btn.small{padding:9px 18px;font-size:14px;box-shadow:0 3px 0 var(--btn-dark);}
+.menu-col{display:flex;flex-direction:column;gap:14px;align-items:center;margin-top:10px;}
+.menu-col .btn{width:240px;}
+.icon-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.6);border:none;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.topbar{position:absolute;top:calc(10px + env(safe-area-inset-top));left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 14px;z-index:3;}
+.timerText{font-variant-numeric:tabular-nums;font-size:18px;background:rgba(255,255,255,.65);padding:6px 16px;border-radius:999px;min-width:120px;text-align:center;}
+.board-wrap{position:relative;width:min(92vw,86vh,480px);aspect-ratio:1;}
+.board{position:relative;width:100%;height:100%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3%;}
+.cell{position:relative;background:rgba(60,50,20,.08);border-radius:var(--radius);}
+.cell.spotlight{z-index:6;box-shadow:0 0 0 4px var(--gold),0 0 22px 6px rgba(214,162,52,.9);}
+.cardStack{position:absolute;inset:6%;border-radius:12px;}
+.cardStack .shadowLayer{position:absolute;inset:0;border-radius:12px;background:var(--card);box-shadow:var(--card-shadow);}
+.cardStack .shadowLayer:nth-child(1){transform:translate(3%,3%);opacity:.5;}
+.cardStack .shadowLayer:nth-child(2){transform:translate(1.5%,1.5%);opacity:.75;}
+.cardFace{position:absolute;inset:0;border-radius:12px;background:var(--card);box-shadow:var(--card-shadow);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;}
+.cardFace img{width:78%;height:78%;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));}
+.cardFace.selected{outline:4px solid var(--gold);outline-offset:-4px;}
+.cardFace.targetGlow{animation:pulseGlow 1s ease-in-out infinite;}
+.stackBadge{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:12px;font-weight:700;border-radius:999px;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 2px 4px rgba(0,0,0,.3);}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(63,122,74,.0),var(--card-shadow);}50%{box-shadow:0 0 0 6px rgba(63,122,74,.55),var(--card-shadow);}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+.shake{animation:shake .25s;}
+@keyframes squash{0%{transform:scale(1,1);}30%{transform:scale(1.22,0.8);}55%{transform:scale(0.92,1.1);}75%{transform:scale(1.05,0.96);}100%{transform:scale(1,1);}}
+.squashing{animation:squash .34s cubic-bezier(.3,1.6,.4,1);transform-origin:50% 85%;}
+@keyframes flashWhite{0%{opacity:0;}12%{opacity:.9;}100%{opacity:0;}}
+.flashOverlay{position:absolute;inset:0;border-radius:12px;background:#fff;opacity:0;pointer-events:none;z-index:4;}
+.flashOverlay.go{animation:flashWhite .28s ease-out;}
+@keyframes boardShake{0%{transform:translate(0,0) rotate(0);}20%{transform:translate(-5px,3px) rotate(-0.6deg);}40%{transform:translate(4px,-4px) rotate(0.6deg);}60%{transform:translate(-3px,3px) rotate(-0.4deg);}80%{transform:translate(2px,-2px) rotate(0.3deg);}100%{transform:translate(0,0) rotate(0);}}
+.board.shaking{animation:boardShake .26s;}
+@keyframes boardShakeBig{0%{transform:translate(0,0) rotate(0);}15%{transform:translate(-10px,6px) rotate(-1.2deg);}30%{transform:translate(9px,-8px) rotate(1.1deg);}45%{transform:translate(-8px,7px) rotate(-0.9deg);}60%{transform:translate(6px,-5px) rotate(0.7deg);}75%{transform:translate(-4px,3px) rotate(-0.4deg);}100%{transform:translate(0,0) rotate(0);}}
+.board.shakingBig{animation:boardShakeBig .5s;}
+.particle{position:absolute;border-radius:50%;pointer-events:none;z-index:8;}
+@keyframes badgeBounce{0%{transform:scale(0.3);}45%{transform:scale(1.45);}70%{transform:scale(0.9);}100%{transform:scale(1);}}
+.stackBadge.bounceIn{animation:badgeBounce .38s cubic-bezier(.3,1.6,.4,1);}
+.trailGhost{position:absolute;border-radius:12px;pointer-events:none;z-index:8;opacity:.35;filter:blur(1px);}
+#flyLayer{position:absolute;inset:0;pointer-events:none;z-index:9;}
+.flyCard{position:absolute;perspective:800px;}
+.flyFace{position:absolute;inset:0;border-radius:12px;background:var(--card);box-shadow:var(--card-shadow);backface-visibility:hidden;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.flyFace img{width:78%;height:78%;object-fit:contain;}
+.flyFace.back{transform:rotateY(180deg);}
+.bottombar{display:flex;gap:10px;margin-top:4px;}
+.overlay{position:absolute;inset:0;background:rgba(20,18,10,.55);display:flex;align-items:center;justify-content:center;z-index:20;}
+.overlay.hidden{display:none;}
+.panel{background:var(--card);border-radius:18px;padding:26px 28px;max-width:88vw;width:360px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;}
+.panel h2{margin:0;color:var(--green-dark);font-size:24px;}
+.panel .score{font-size:15px;color:#555;line-height:1.6;}
+.row{display:flex;align-items:center;justify-content:space-between;width:100%;gap:10px;}
+.row label{font-size:15px;}
+select{font-size:14px;padding:6px 10px;border-radius:8px;border:1px solid #ccc;background:#fff;}
+.toggle{width:46px;height:26px;border-radius:999px;background:#ccc;position:relative;border:none;cursor:pointer;flex:none;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s;}
+.toggle.on::after{left:23px;}
+.closeX{position:absolute;top:10px;right:14px;background:none;border:none;font-size:20px;color:#888;cursor:pointer;}
+.attrRow{display:flex;align-items:center;gap:10px;width:100%;}
+.attrLabel{width:52px;flex:none;font-weight:700;color:var(--green-dark);text-align:center;font-size:15px;}
+.attrImgs{display:flex;gap:6px;flex:1;justify-content:center;}
+.attrImgs img{width:56px;height:56px;object-fit:contain;background:var(--card);border-radius:10px;box-shadow:var(--card-shadow);padding:5px;}
+.explainPanel{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:var(--card);border-radius:14px;padding:12px 20px;box-shadow:var(--card-shadow);max-width:84%;text-align:center;font-size:15px;z-index:25;}
+.explainPanel.hidden{display:none;}
+.tutorialMask{position:absolute;inset:0;z-index:5;border-radius:var(--radius);pointer-events:none;}
+footer.hint{position:absolute;bottom:calc(8px + env(safe-area-inset-bottom));font-size:15px;color:#6b6450;text-align:center;}
+footer.hint div:first-child{margin-top:10px;font-size:15px;}
+footer.hint #creditLine{font-size:16px;font-weight:600;margin-top:4px;}
+footer.hint a{color:inherit;text-decoration:underline;}
+.lbRow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(63,122,74,.07);}
+.lbRow .lbRank{font-weight:700;width:28px;text-align:center;color:var(--green-dark);}
+.lbRow:nth-child(1) .lbRank{color:#c9962e;}
+.lbRow:nth-child(2) .lbRank{color:#8a8f99;}
+.lbRow:nth-child(3) .lbRank{color:#b2703a;}
+.lbRow .lbScore{font-weight:700;min-width:48px;}
+.lbRow .lbMeta{flex:1;font-size:12px;color:#777;text-align:right;}
+.langPicker{position:absolute;top:calc(10px + env(safe-area-inset-top));right:14px;display:flex;gap:6px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- START SCREEN -->
+  <section id="startScreen" class="screen">
+    <button class="icon-btn" id="settingsBtnStart" style="position:absolute;top:calc(10px + env(safe-area-inset-top));left:14px;">⚙</button>
+    <h1 class="logo">Leaves</h1>
+    <div class="subtitle" data-i18n="appSubtitle">落葉拼圖</div>
+    <div class="menu-col">
+      <button class="btn" id="btnStartZen" data-i18n="startZen">開始遊戲</button>
+      <button class="btn secondary" id="btnStartTimer" data-i18n="startTimer">計時挑戰</button>
+      <button class="btn accent" id="btnOpenLeaderboard" data-i18n="leaderboardBtn">排行榜</button>
+      <button class="btn muted" id="btnOpenTutorial" data-i18n="tutorialBtn">教學模式</button>
+    </div>
+    <footer class="hint">
+      <div data-i18n="madeBy">Make by wo.FAN.H · 網頁版</div>
+      <div id="creditLine"></div>
+    </footer>
+  </section>
+
+  <!-- GAME SCREEN -->
+  <section id="gameScreen" class="screen hidden">
+    <div class="topbar">
+      <button class="icon-btn" id="btnHome">🏠</button>
+      <div class="timerText" id="timerText">--</div>
+      <button class="icon-btn" id="btnSettingsGame">⚙</button>
+    </div>
+    <div class="board-wrap" id="boardWrap">
+      <div class="board" id="board"></div>
+      <div id="flyLayer"></div>
+      <div class="explainPanel hidden" id="explainPanel"></div>
+    </div>
+    <div class="bottombar">
+      <button class="btn ghost small" id="btnUndo" data-i18n="undoLabel">上一步</button>
+      <button class="btn ghost small" id="btnReshuffle" data-i18n="reshuffleLabel">重新發牌</button>
+    </div>
+  </section>
+
+  <!-- SETTINGS OVERLAY -->
+  <div class="overlay hidden" id="settingsOverlay">
+    <div class="panel">
+      <button class="closeX" id="closeSettings">✕</button>
+      <h2 data-i18n="settingsTitle">設定</h2>
+      <div class="row"><label data-i18n="languageLabel">語言</label>
+        <select id="langSelect">
+          <option value="zhTW">繁體中文</option>
+          <option value="zhCN">简体中文</option>
+          <option value="jaJP">日本語</option>
+          <option value="enUS">English</option>
+        </select>
+      </div>
+      <div class="row"><label data-i18n="timerSwitchLabel">計時開關</label>
+        <button class="toggle" id="toggleTimer"></button>
+      </div>
+      <div class="row"><label data-i18n="soundLabel">音效</label>
+        <button class="toggle" id="toggleSound"></button>
+      </div>
+      <button class="btn ghost small" id="btnReset" data-i18n="resetLabel">恢復預設值</button>
+    </div>
+  </div>
+
+  <!-- RESULT OVERLAY -->
+  <div class="overlay hidden" id="resultOverlay">
+    <div class="panel">
+      <h2 id="resultTitle"></h2>
+      <div class="score" id="resultScore"></div>
+      <input type="text" id="nameInput" class="hidden" maxlength="16" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #cfc6a8;font-size:15px;text-align:center;">
+      <div class="score hidden" id="resultHint"></div>
+      <div class="menu-col" style="margin-top:6px;">
+        <button class="btn hidden" id="btnResultUndo"></button>
+        <button class="btn" id="btnPlayAgain"></button>
+        <button class="btn ghost small" id="btnToHome" data-i18n="homeLabel">回主選單</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD OVERLAY -->
+  <div class="overlay hidden" id="leaderboardOverlay">
+    <div class="panel">
+      <button class="closeX" id="closeLeaderboard">✕</button>
+      <h2 data-i18n="leaderboardTitle">排行榜</h2>
+      <div id="leaderboardList" style="width:100%;max-height:48vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+      <button class="btn ghost small" id="btnClearRecords" data-i18n="clearRecordsLabel">清除紀錄</button>
+    </div>
+  </div>
+
+  <!-- TUTORIAL OVERLAY -->
+  <div class="overlay hidden" id="tutorialIntro">
+    <div class="panel">
+      <h2 data-i18n="tutorialTitle">新手教學</h2>
+      <div class="score" data-i18n="tutorialIntroText">三張卡片只要「顏色、種類、數量」其中一項相同，就能疊在一起！跟著提示點兩下試試看。</div>
+      <button class="btn" id="btnTutorialGo" data-i18n="tutorialStartBtn">開始教學</button>
+    </div>
+  </div>
+
+  <!-- ATTRIBUTE INTRO OVERLAY -->
+  <div class="overlay hidden" id="attrIntroOverlay">
+    <div class="panel" style="max-width:92vw;width:420px;">
+      <h2 data-i18n="attrIntroTitle">認識三種屬性</h2>
+      <div class="attrRow">
+        <div class="attrLabel" data-i18n="attrColorLabel">顏色</div>
+        <div class="attrImgs">
+          <img src="assets/leaf_0_0_0.png"><img src="assets/leaf_1_0_0.png"><img src="assets/leaf_2_0_0.png">
+        </div>
+      </div>
+      <div class="attrRow">
+        <div class="attrLabel" data-i18n="attrTypeLabel">種類</div>
+        <div class="attrImgs">
+          <img src="assets/leaf_0_0_0.png"><img src="assets/leaf_0_1_0.png"><img src="assets/leaf_0_2_0.png">
+        </div>
+      </div>
+      <div class="attrRow">
+        <div class="attrLabel" data-i18n="attrCountLabel">數量</div>
+        <div class="attrImgs">
+          <img src="assets/leaf_0_0_0.png"><img src="assets/leaf_0_0_1.png"><img src="assets/leaf_0_0_2.png">
+        </div>
+      </div>
+      <div class="score" data-i18n="attrIntroHint">只要任一項相同，就能疊在一起！</div>
+      <button class="btn" id="btnAttrIntroNext" data-i18n="continueLabel">繼續</button>
+    </div>
+  </div>
+
+</div>
+<script>
+/* ========================= i18n ========================= */
+const I18N = {
+  zhTW:{appSubtitle:"落葉拼圖",madeBy:"Make by wo.FAN.H · 網頁版",startZen:"開始遊戲",startTimer:"計時挑戰",
+    settingsTitle:"設定",languageLabel:"語言",timerSwitchLabel:"計時開關",soundLabel:"音效",resetLabel:"恢復預設值",
+    undoLabel:"上一步",reshuffleLabel:"重新發牌",homeLabel:"回主選單",playAgainLabel:"再玩一次",
+    winTitle:"成功！",loseTitle:"卡住了！",gameEnd:"挑戰成功",
+    stuckHint:"別擔心，大部分的卡關只要換個疊法就能解開。",retryUndoLabel:"回到上一步再試試",retryNewLabel:"重新發牌",playAgainLabel2:"再玩一次",
+    prepareTpl:v=>`觀察時間 ${v} 秒`,actionTpl:v=>`計時 ${v} 秒`,dealing:"發牌中",
+    tutorialTitle:"新手教學",tutorialIntroText:"三張卡片只要「顏色、種類、數量」其中一項相同，就能疊在一起！跟著提示點兩下試試看。",
+    tutorialStartBtn:"開始教學",tutorialTapSource:"點一下這張卡片",tutorialTapTarget:"再點一下這張卡片試試看",
+    sameColor:"顏色一樣 → 可以疊在一起",sameType:"種類一樣 → 可以疊在一起",sameNumber:"數量一樣 → 可以疊在一起",
+    tutorialFinish:"學會了！把所有卡片疊成一堆就獲勝！",tutorialFinishBtn:"開始遊戲",
+    scoreLabel:"分數",newBestLabel:"新紀錄！",rankLabel:v=>`第 ${v} 名`,
+    leaderboardTitle:"排行榜",leaderboardBtn:"排行榜",noRecordsLabel:"還沒有紀錄，快去挑戰一局吧！",
+    clearRecordsLabel:"清除紀錄",confirmClearLabel:"確定要清除所有本機紀錄嗎？這無法復原。",
+    modeZenLabel:"禪",modeTimerLabel:"計時",undoUsedLabel:v=>`用了 ${v} 次上一步`,
+    enterNameLabel:"輸入你的名字（可留空）",anonymousLabel:"匿名玩家",
+    observeNoticeText:"準備好！你有 15 秒可以觀察牌面",goNoticeText:"開始！",
+    creditLabel:"原創：《Leaves 葉漫漫》by Play With Us Design 玩聚設計 (pwud.ga)",
+    tutorialBtn:"教學模式",
+    attrIntroTitle:"認識三種屬性",attrColorLabel:"顏色",attrTypeLabel:"種類",attrCountLabel:"數量",
+    attrIntroHint:"只要任一項相同，就能疊在一起！",continueLabel:"繼續"},
+  zhCN:{appSubtitle:"落叶拼图",madeBy:"Make by wo.FAN.H · 网页版",startZen:"开始游戏",startTimer:"计时挑战",
+    settingsTitle:"设置",languageLabel:"语言",timerSwitchLabel:"计时开关",soundLabel:"音效",resetLabel:"恢复默认值",
+    undoLabel:"上一步",reshuffleLabel:"重新发牌",homeLabel:"回主菜单",playAgainLabel:"再玩一次",
+    winTitle:"成功！",loseTitle:"卡住了！",gameEnd:"挑战成功",
+    stuckHint:"别担心，大部分的卡关只要换个叠法就能解开。",retryUndoLabel:"回到上一步再试试",retryNewLabel:"重新发牌",playAgainLabel2:"再玩一次",
+    prepareTpl:v=>`观察时间 ${v} 秒`,actionTpl:v=>`计时 ${v} 秒`,dealing:"发牌中",
+    tutorialTitle:"新手教学",tutorialIntroText:"三张卡片只要「颜色、种类、数量」其中一项相同，就能叠在一起！跟着提示点两下试试看。",
+    tutorialStartBtn:"开始教学",tutorialTapSource:"点一下这张卡片",tutorialTapTarget:"再点一下这张卡片试试看",
+    sameColor:"颜色一样 → 可以叠在一起",sameType:"种类一样 → 可以叠在一起",sameNumber:"数量一样 → 可以叠在一起",
+    tutorialFinish:"学会了！把所有卡片叠成一堆就获胜！",tutorialFinishBtn:"开始游戏",
+    scoreLabel:"分数",newBestLabel:"新纪录！",rankLabel:v=>`第 ${v} 名`,
+    leaderboardTitle:"排行榜",leaderboardBtn:"排行榜",noRecordsLabel:"还没有纪录，快去挑战一局吧！",
+    clearRecordsLabel:"清除纪录",confirmClearLabel:"确定要清除所有本机纪录吗？这无法恢复。",
+    modeZenLabel:"禅",modeTimerLabel:"计时",undoUsedLabel:v=>`用了 ${v} 次上一步`,
+    enterNameLabel:"输入你的名字（可留空）",anonymousLabel:"匿名玩家",
+    observeNoticeText:"准备好！你有 15 秒可以观察牌面",goNoticeText:"开始！",
+    creditLabel:"原创：《Leaves 叶漫漫》by Play With Us Design 玩聚设计 (pwud.ga)",
+    tutorialBtn:"教学模式",
+    attrIntroTitle:"认识三种属性",attrColorLabel:"颜色",attrTypeLabel:"种类",attrCountLabel:"数量",
+    attrIntroHint:"只要任一项相同，就能叠在一起！",continueLabel:"继续"},
+  jaJP:{appSubtitle:"落ち葉パズル",madeBy:"Make by wo.FAN.H · ウェブ版",startZen:"ゲーム開始",startTimer:"タイムアタック",
+    settingsTitle:"設定",languageLabel:"言語",timerSwitchLabel:"タイマースイッチ",soundLabel:"サウンド",resetLabel:"初期設定に戻す",
+    undoLabel:"元に戻す",reshuffleLabel:"配り直す",homeLabel:"ホームへ",playAgainLabel:"もう一度",
+    winTitle:"成功！",loseTitle:"行き詰まった！",gameEnd:"チャレンジ成功",
+    stuckHint:"大丈夫、重ね方を変えればたいてい解けます。",retryUndoLabel:"一手戻ってやり直す",retryNewLabel:"配り直す",playAgainLabel2:"もう一度",
+    prepareTpl:v=>`観測時間 ${v} 秒`,actionTpl:v=>`タイマー ${v} 秒`,dealing:"カードを配る",
+    tutorialTitle:"チュートリアル",tutorialIntroText:"「色・種類・枚数」のどれか一つが同じなら重ねられます！指示に従ってタップしてみましょう。",
+    tutorialStartBtn:"チュートリアル開始",tutorialTapSource:"このカードをタップ",tutorialTapTarget:"続けてこのカードをタップ",
+    sameColor:"色が同じ → 重ねられる",sameType:"種類が同じ → 重ねられる",sameNumber:"枚数が同じ → 重ねられる",
+    tutorialFinish:"覚えました！すべて1つにまとめればクリア！",tutorialFinishBtn:"ゲーム開始",
+    scoreLabel:"スコア",newBestLabel:"新記録！",rankLabel:v=>`第 ${v} 位`,
+    leaderboardTitle:"ランキング",leaderboardBtn:"ランキング",noRecordsLabel:"まだ記録がありません。挑戦してみましょう！",
+    clearRecordsLabel:"記録を消去",confirmClearLabel:"本当にすべてのローカル記録を消去しますか？元に戻せません。",
+    modeZenLabel:"ゆったり",modeTimerLabel:"タイム",undoUsedLabel:v=>`元に戻す ${v} 回`,
+    enterNameLabel:"名前を入力（空欄も可）",anonymousLabel:"名無しさん",
+    observeNoticeText:"準備！15秒間カードを観察できます",goNoticeText:"スタート！",
+    creditLabel:"原作：「Leaves 葉漫漫」by Play With Us Design (pwud.ga)",
+    tutorialBtn:"チュートリアル",
+    attrIntroTitle:"3つの要素を知ろう",attrColorLabel:"色",attrTypeLabel:"種類",attrCountLabel:"枚数",
+    attrIntroHint:"どれか一つでも同じなら重ねられます！",continueLabel:"次へ"},
+  enUS:{appSubtitle:"A Leaf-Matching Puzzle",madeBy:"Make by wo.FAN.H · Web Edition",startZen:"Start Game",startTimer:"Timed Challenge",
+    settingsTitle:"Settings",languageLabel:"Language",timerSwitchLabel:"Timer switch",soundLabel:"Sound",resetLabel:"Restore Defaults",
+    undoLabel:"Undo",reshuffleLabel:"Reshuffle",homeLabel:"Home",playAgainLabel:"Play Again",
+    winTitle:"Success!",loseTitle:"Stuck!",gameEnd:"Challenge Completed",
+    stuckHint:"No worries — most dead-ends just need a different stacking order.",retryUndoLabel:"Undo last move & retry",retryNewLabel:"Reshuffle",playAgainLabel2:"Play Again",
+    prepareTpl:v=>`Observation time: ${v}s`,actionTpl:v=>`Timer: ${v}s`,dealing:"Dealing",
+    tutorialTitle:"Tutorial",tutorialIntroText:"Two cards can stack if they share the same color, type, or number! Follow the hints and tap twice.",
+    tutorialStartBtn:"Start Tutorial",tutorialTapSource:"Tap this card",tutorialTapTarget:"Now tap this card",
+    sameColor:"Same color → can stack",sameType:"Same type → can stack",sameNumber:"Same number → can stack",
+    tutorialFinish:"Got it! Merge every card into one pile to win!",tutorialFinishBtn:"Start Game",
+    scoreLabel:"Score",newBestLabel:"New best!",rankLabel:v=>`Rank #${v}`,
+    leaderboardTitle:"Leaderboard",leaderboardBtn:"Leaderboard",noRecordsLabel:"No records yet — go play a round!",
+    clearRecordsLabel:"Clear records",confirmClearLabel:"Clear all local records? This cannot be undone.",
+    modeZenLabel:"Zen",modeTimerLabel:"Timed",undoUsedLabel:v=>`${v} undo(s) used`,
+    enterNameLabel:"Enter your name (optional)",anonymousLabel:"Anonymous",
+    observeNoticeText:"Get ready! You have 15 seconds to study the board",goNoticeText:"Go!",
+    creditLabel:"Original concept: \"Leaves\" by Play With Us Design (pwud.ga)",
+    tutorialBtn:"Tutorial",
+    attrIntroTitle:"Learn the 3 traits",attrColorLabel:"Color",attrTypeLabel:"Type",attrCountLabel:"Count",
+    attrIntroHint:"Share any one trait and they can stack!",continueLabel:"Continue"},
+};
+let lang = 'zhTW';
+function t(key,...a){ const v = I18N[lang][key]; return typeof v==='function'? v(...a) : v; }
+function applyI18nStatic(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k = el.getAttribute('data-i18n');
+    if (I18N[lang][k] && typeof I18N[lang][k] === 'string') el.textContent = I18N[lang][k];
+  });
+  document.getElementById('langSelect').value = lang;
+  const credit = document.getElementById('creditLine');
+  if (credit) credit.innerHTML = `<a href="https://pwud.ga/zh-hant/" target="_blank" rel="noopener">${t('creditLabel')}</a>`;
+}
+
+/* ========================= Settings / Save ========================= */
+const SAVE_KEY = 'leaves_web_save_v1';
+let settings = { lang:'zhTW', showTimer:false, sound:true, tutorialDone:false, playerName:'' };
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) Object.assign(settings, JSON.parse(raw));
+  }catch(e){}
+  lang = settings.lang;
+}
+function saveSettings(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(settings)); }catch(e){}
+}
+
+/* ========================= Local leaderboard ========================= */
+const BOARD_KEY = 'leaves_web_leaderboard_v1';
+const MAX_BOARD_ENTRIES = 10;
+function loadLeaderboard(){
+  try{
+    const raw = localStorage.getItem(BOARD_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function saveLeaderboard(list){
+  try{ localStorage.setItem(BOARD_KEY, JSON.stringify(list)); }catch(e){}
+}
+function computeScore(totalTime, undoUsed){
+  let score = 1200 - totalTime*12 - undoUsed*40;
+  if (undoUsed===0) score += 100;
+  return Math.max(0, Math.round(score));
+}
+function willQualifyForLeaderboard(score){
+  const list = loadLeaderboard();
+  return list.length < MAX_BOARD_ENTRIES || score > list[list.length-1].score;
+}
+// returns {rank, isNewBest, id} where rank is 1-based position in the saved top-10, or null if it didn't make the list
+function addScoreToLeaderboard(score, totalTime, undoUsed, mode, name){
+  const list = loadLeaderboard();
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  const entry = { id, score, totalTime, undoUsed, mode, name: name||'', date: Date.now() };
+  list.push(entry);
+  list.sort((a,b)=>b.score-a.score);
+  const trimmed = list.slice(0, MAX_BOARD_ENTRIES);
+  saveLeaderboard(trimmed);
+  const rank = trimmed.indexOf(entry);
+  return { rank: rank>=0 ? rank+1 : null, isNewBest: rank===0, id };
+}
+function updateLeaderboardEntryName(id, name){
+  const list = loadLeaderboard();
+  const found = list.find(e=>e.id===id);
+  if (found){ found.name = name; saveLeaderboard(list); }
+}
+function clearLeaderboard(){ saveLeaderboard([]); }
+
+/* ========================= Audio (tiny synth, no asset files) ========================= */
+let actx=null;
+function beep(freq,dur,vol=0.15){
+  if (!settings.sound) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type='sine'; o.frequency.value=freq;
+    g.gain.value=vol;
+    o.connect(g); g.connect(actx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime+dur);
+    o.stop(actx.currentTime+dur);
+  }catch(e){}
+}
+const sfx = { pick:()=>beep(520,.08), move:()=>beep(380,.18), win:()=>{beep(660,.15);setTimeout(()=>beep(880,.25),120);}, lose:()=>beep(160,.35,.2), invalid:()=>beep(200,.1,.1) };
+
+/* ========================= Game Model ========================= */
+function checkMatch(a,b){ return a && b && (a.color===b.color || a.shape===b.shape || a.count===b.count); }
+function idx(x,y){ return y*3+x; }
+function solvable(table, remainingMoves, visited){
+  if (remainingMoves===0) return true;
+  let k=''; for(let i=0;i<9;i++) k += table[i]? (1+table[i].color*9+table[i].shape*3+table[i].count) : 0;
+  if (visited.has(k)) return visited.get(k);
+  visited.set(k,false);
+  let found=false;
+  for (let x=0;x<3 && !found;x++){
+    for (let y=0;y<3 && !found;y++){
+      const o = table[idx(x,y)];
+      if (!o) continue;
+      if (x<2){
+        const d = table[idx(x+1,y)];
+        if (d && checkMatch(o,d)){
+          for (const [fx,fy,tx,ty] of [[x,y,x+1,y],[x+1,y,x,y]]){
+            const next = table.slice();
+            next[idx(tx,ty)] = next[idx(fx,fy)]; next[idx(fx,fy)] = null;
+            if (solvable(next, remainingMoves-1, visited)){ found=true; break; }
+          }
+        }
+      }
+      if (found) break;
+      if (y<2){
+        const r = table[idx(x,y+1)];
+        if (r && checkMatch(o,r)){
+          for (const [fx,fy,tx,ty] of [[x,y,x,y+1],[x,y+1,x,y]]){
+            const next = table.slice();
+            next[idx(tx,ty)] = next[idx(fx,fy)]; next[idx(fx,fy)] = null;
+            if (solvable(next, remainingMoves-1, visited)){ found=true; break; }
+          }
+        }
+      }
+    }
+  }
+  visited.set(k,found);
+  return found;
+}
+function boardSolvable(board, movesMade){
+  const table = [];
+  for (let y=0;y<3;y++) for (let x=0;x<3;x++) table[idx(x,y)] = board[x][y] ? board[x][y].identity : null;
+  return solvable(table, 8-movesMade, new Map());
+}
+function shuffledDeck(){
+  const deck=[];
+  for (let c=0;c<3;c++) for (let s=0;s<3;s++) for (let n=0;n<3;n++) deck.push({color:c,shape:s,count:n});
+  for (let i=deck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]]; }
+  return deck;
+}
+
+let board, movesMade, selected, availableTargets, gstate, prepareStart, prepareTime, actionStart, actionTime, history, timerInterval, undoCount;
+
+function dealNewGrid(){
+  let tries=0;
+  while(true){
+    const deck = shuffledDeck();
+    const b = [[],[],[]];
+    let i=0;
+    for (let x=0;x<3;x++) for (let y=0;y<3;y++) b[x][y] = { identity: deck[i++], stack:1 };
+    if (boardSolvable(b,0) || ++tries>40) { board=b; break; }
+  }
+  movesMade=0; selected=null; availableTargets=[]; history=[]; undoCount=0;
+  prepareTime=0; actionStart=0; actionTime=0;
+  renderBoard();
+  // The 15s inspection notice only matters for Timer Challenge mode — Zen mode skips straight to play.
+  if (settings.showTimer){
+    gstate='dealing';
+    showObserveNotice();
+  } else {
+    gstate='prepare'; prepareStart=performance.now();
+  }
+}
+function showObserveNotice(){
+  const panel = document.getElementById('explainPanel');
+  panel.textContent = t('observeNoticeText');
+  panel.classList.remove('hidden');
+  clearTimeout(observeNoticeTimer);
+  observeNoticeTimer = setTimeout(()=>{
+    panel.classList.add('hidden');
+    gstate='prepare'; prepareStart=performance.now();
+  }, 1600);
+}
+let observeNoticeTimer=null;
+function showGoNotice(){
+  const panel = document.getElementById('explainPanel');
+  panel.textContent = t('goNoticeText');
+  panel.classList.remove('hidden');
+  clearTimeout(goNoticeTimer);
+  goNoticeTimer = setTimeout(()=>{ panel.classList.add('hidden'); }, 700);
+}
+let goNoticeTimer=null;
+
+function availableMovesFrom(x,y){
+  const res=[];
+  const o = board[x][y]; if(!o) return res;
+  const dirs=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
+  for (const [nx,ny] of dirs){
+    if (nx<0||nx>2||ny<0||ny>2) continue;
+    const n = board[nx][ny];
+    if (n && checkMatch(o.identity, n.identity)) res.push({x:nx,y:ny});
+  }
+  return res;
+}
+function countOccupied(){ let c=0; for (let x=0;x<3;x++) for (let y=0;y<3;y++) if (board[x][y]) c++; return c; }
+function cloneBoard(b){ return b.map(col=>col.map(c=> c? {identity:c.identity, stack:c.stack} : null)); }
+function pushHistory(){
+  history.push({board:cloneBoard(board), movesMade, gstate, prepareStart, prepareTime, actionStart, actionTime});
+}
+
+let tutActive=false;
+let animating=false;
+function onCellClick(x,y){
+  if (animating) return;
+  if (tutActive){ tutHandleClick(x,y); return; }
+  if (gstate!=='prepare' && gstate!=='action') return;
+  if (selected===null){
+    if (!board[x][y]) return;
+    const moves = availableMovesFrom(x,y);
+    if (moves.length===0){ shakeCell(x,y); sfx.invalid(); return; }
+    selected={x,y}; availableTargets=moves; sfx.pick();
+    renderBoard();
+  } else {
+    if (x===selected.x && y===selected.y){ selected=null; availableTargets=[]; renderBoard(); return; }
+    const isTarget = availableTargets.some(m=>m.x===x&&m.y===y);
+    if (!isTarget){ selected=null; availableTargets=[]; renderBoard(); return; }
+    doMove(selected, {x,y});
+  }
+}
+
+function doMove(from, to, scripted){
+  animating=true;
+  if (!scripted) pushHistory();
+  if (gstate==='prepare'){ prepareTime=(performance.now()-prepareStart)/1000; gstate='action'; actionStart=performance.now(); if (!scripted) showGoNotice(); }
+  const fromEl = cellEl(from.x,from.y), toEl = cellEl(to.x,to.y);
+  selected=null; availableTargets=[];
+  // Scoring mode (timer challenge) skips the flight/juice animation entirely so it never inflates the clock.
+  const instant = settings.showTimer && !scripted;
+  const finishMove = ()=>{
+    const movedIdentity = board[from.x][from.y].identity;
+    board[to.x][to.y] = { identity: movedIdentity, stack: board[to.x][to.y].stack + board[from.x][from.y].stack };
+    board[from.x][from.y] = null;
+    movesMade++;
+    sfx.move();
+    renderBoard();
+    animating=false;
+    const landEl = cellEl(to.x,to.y);
+    if (!instant && landEl) impactJuice(landEl, movedIdentity.color, false);
+    if (scripted) return;
+    const occ = countOccupied();
+    const evaluate = ()=>{
+      if (occ===1){
+        actionTime=(performance.now()-actionStart)/1000; gstate='concluded';
+        if (!instant && landEl) impactJuice(landEl, movedIdentity.color, true);
+        showResult(true);
+      } else if (!boardSolvable(board, movesMade)){
+        actionTime=(performance.now()-actionStart)/1000; gstate='concluded';
+        if (!instant) screenShake(false);
+        showResult(false);
+      }
+    };
+    if (instant) evaluate();
+    // brief hit-stop so the impact reads before the outcome is revealed
+    else setTimeout(evaluate, 90);
+  };
+  if (instant){ finishMove(); return; }
+  animateFly(fromEl, toEl, board[from.x][from.y].identity, finishMove);
+  renderBoard([from, to]);
+}
+
+function undo(){
+  if (history.length===0) return;
+  const h = history.pop();
+  board = h.board; movesMade=h.movesMade; gstate=h.gstate;
+  prepareStart=h.prepareStart; prepareTime=h.prepareTime; actionStart=h.actionStart; actionTime=h.actionTime;
+  undoCount++;
+  selected=null; availableTargets=[];
+  document.getElementById('resultOverlay').classList.add('hidden');
+  renderBoard();
+}
+
+/* ========================= Rendering ========================= */
+function leafImg(identity){ return `assets/leaf_${identity.color}_${identity.shape}_${identity.count}.png`; }
+function cellEl(x,y){ return document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`); }
+
+function renderBoard(hideCells){
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML='';
+  for (let y=0;y<3;y++){
+    for (let x=0;x<3;x++){
+      const cell = document.createElement('div');
+      cell.className='cell'; cell.dataset.x=x; cell.dataset.y=y;
+      const data = board[x][y];
+      const hidden = hideCells && hideCells.some(c=>c.x===x&&c.y===y);
+      if (data && !hidden){
+        const stack = document.createElement('div'); stack.className='cardStack';
+        if (data.stack>1) stack.innerHTML += '<div class="shadowLayer"></div>';
+        if (data.stack>2) stack.innerHTML = '<div class="shadowLayer"></div>' + stack.innerHTML;
+        const face = document.createElement('div');
+        face.className='cardFace';
+        if (selected && selected.x===x && selected.y===y) face.classList.add('selected');
+        if (availableTargets.some(m=>m.x===x&&m.y===y)) face.classList.add('targetGlow');
+        face.innerHTML = `<img src="${leafImg(data.identity)}" draggable="false">`;
+        stack.appendChild(face);
+        if (data.stack>1){ const b=document.createElement('div'); b.className='stackBadge'; b.textContent='x'+data.stack; stack.appendChild(b); }
+        cell.appendChild(stack);
+      }
+      cell.addEventListener('click',()=>onCellClick(x,y));
+      boardEl.appendChild(cell);
+    }
+  }
+}
+function shakeCell(x,y){
+  const el = cellEl(x,y);
+  if (!el) return;
+  el.classList.add('shake');
+  setTimeout(()=>el.classList.remove('shake'), 260);
+}
+
+/* ---- Juice helpers: squash/flash/particles/shake ---- */
+const LEAF_COLOR_HEX = ['#d6a234','#3f7a4a','#b6442f'];
+function screenShake(big){
+  const b = document.getElementById('board');
+  b.classList.remove('shaking','shakingBig');
+  void b.offsetWidth;
+  b.classList.add(big?'shakingBig':'shaking');
+  setTimeout(()=>b.classList.remove(big?'shakingBig':'shaking'), big?520:280);
+}
+function spawnParticles(cellElement, colorIdx, count){
+  const wrap = document.getElementById('boardWrap');
+  const wrapRect = wrap.getBoundingClientRect();
+  const r = cellElement.getBoundingClientRect();
+  const cx = r.left - wrapRect.left + r.width/2;
+  const cy = r.top - wrapRect.top + r.height/2;
+  const color = LEAF_COLOR_HEX[colorIdx] || '#d6a234';
+  const layer = document.getElementById('flyLayer');
+  for (let i=0;i<count;i++){
+    const p = document.createElement('div');
+    p.className='particle';
+    const size = 5 + Math.random()*7;
+    p.style.width=size+'px'; p.style.height=size+'px';
+    p.style.left=(cx-size/2)+'px'; p.style.top=(cy-size/2)+'px';
+    p.style.background=color;
+    layer.appendChild(p);
+    const angle = Math.random()*Math.PI*2;
+    const dist = 28 + Math.random()*46;
+    const dx = Math.cos(angle)*dist, dy = Math.sin(angle)*dist;
+    const anim = p.animate([
+      { transform:'translate(0,0) scale(1)', opacity:1 },
+      { transform:`translate(${dx}px,${dy}px) scale(.3)`, opacity:0 }
+    ], { duration: 420+Math.random()*180, easing:'cubic-bezier(.2,.7,.4,1)' });
+    anim.onfinish = ()=>{ if (p.parentNode) p.parentNode.removeChild(p); };
+  }
+}
+function impactJuice(cellElement, colorIdx, big){
+  const face = cellElement.querySelector('.cardFace');
+  if (face){
+    face.classList.remove('squashing'); void face.offsetWidth; face.classList.add('squashing');
+    const flash = document.createElement('div');
+    flash.className='flashOverlay go';
+    face.appendChild(flash);
+    flash.addEventListener('animationend', ()=>{ if(flash.parentNode) flash.parentNode.removeChild(flash); });
+  }
+  const badge = cellElement.querySelector('.stackBadge');
+  if (badge){ badge.classList.remove('bounceIn'); void badge.offsetWidth; badge.classList.add('bounceIn'); }
+  spawnParticles(cellElement, colorIdx, big? 22 : 10);
+  screenShake(big);
+}
+
+function animateFly(fromEl, toEl, identity, done){
+  const wrap = document.getElementById('boardWrap');
+  const wrapRect = wrap.getBoundingClientRect();
+  const fr = fromEl.getBoundingClientRect(), tr = toEl.getBoundingClientRect();
+  const layer = document.getElementById('flyLayer');
+  const fly = document.createElement('div');
+  fly.className='flyCard';
+  const w = fr.width*0.82, h = fr.height*0.82;
+  const startX = fr.left - wrapRect.left + (fr.width-w)/2;
+  const startY = fr.top - wrapRect.top + (fr.height-h)/2;
+  const endX = tr.left - wrapRect.left + (tr.width-w)/2;
+  const endY = tr.top - wrapRect.top + (tr.height-h)/2;
+  fly.style.left = startX+'px'; fly.style.top = startY+'px';
+  fly.style.width = w+'px'; fly.style.height = h+'px';
+  fly.innerHTML = `<div class="flyFace front"><img src="${leafImg(identity)}"></div><div class="flyFace back"><img src="assets/card_back.png" style="width:100%;height:100%;object-fit:cover;border-radius:12px;"></div>`;
+  layer.appendChild(fly);
+  const dx = endX-startX, dy = endY-startY;
+  const duration = 480;
+  const hop = -Math.max(28, Math.min(60, Math.hypot(dx,dy)*0.35));
+  const t0 = performance.now();
+  let lastTrail = 0;
+  function easeInOutQuad(p){ return p<0.5 ? 2*p*p : 1-Math.pow(-2*p+2,2)/2; }
+  function frame(now){
+    const raw = Math.min(1,(now-t0)/duration);
+    const p = easeInOutQuad(raw);
+    const cx = dx*p, cy = dy*p + hop*4*p*(1-p);
+    fly.style.transform = `translate(${cx}px,${cy}px) rotateY(${p*360}deg) scale(${1+0.08*Math.sin(p*Math.PI)})`;
+    if (now - lastTrail > 28 && raw<0.92){
+      lastTrail = now;
+      const ghost = document.createElement('div');
+      ghost.className='trailGhost';
+      ghost.style.left = startX+'px'; ghost.style.top = startY+'px';
+      ghost.style.width = w+'px'; ghost.style.height = h+'px';
+      ghost.style.background = LEAF_COLOR_HEX[identity.color];
+      ghost.style.transform = `translate(${cx}px,${cy}px)`;
+      layer.appendChild(ghost);
+      const ga = ghost.animate([{opacity:.32,transform:ghost.style.transform+' scale(0.9)'},{opacity:0,transform:ghost.style.transform+' scale(0.6)'}],{duration:260,easing:'ease-out'});
+      ga.onfinish = ()=>{ if (ghost.parentNode) ghost.parentNode.removeChild(ghost); };
+    }
+    if (raw<1) requestAnimationFrame(frame);
+    else { if (fly.parentNode) layer.removeChild(fly); done(); }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ========================= Timer loop ========================= */
+function startTimerLoop(){
+  clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    const el = document.getElementById('timerText');
+    if (!settings.showTimer){ el.style.visibility='hidden'; return; }
+    if (gstate==='prepare'){
+      let elapsed = (performance.now()-prepareStart)/1000;
+      if (elapsed>15){ prepareTime=15; gstate='action'; actionStart=performance.now()-15000; elapsed=15; showGoNotice(); }
+      const remaining = Math.max(0, 15-elapsed);
+      el.textContent = t('prepareTpl', Math.ceil(remaining));
+      el.style.visibility='visible';
+    } else if (gstate==='action'){
+      const elapsed = (performance.now()-actionStart)/1000;
+      el.textContent = fmtTime(elapsed,false);
+      el.style.visibility='visible';
+    } else {
+      el.style.visibility='hidden';
+    }
+  }, 100);
+}
+function fmtTime(sec, isPrepare){
+  const m = Math.floor(sec/60), s=(sec-m*60);
+  const txt = m>0 ? `${m}:${s.toFixed(0).padStart(2,'0')}` : s.toFixed(0);
+  return isPrepare ? t('prepareTpl', txt) : t('actionTpl', txt);
+}
+
+/* ========================= Result / Score ========================= */
+function showResult(win){
+  const overlay = document.getElementById('resultOverlay');
+  document.getElementById('resultTitle').textContent = win? t('winTitle') : t('loseTitle');
+  document.getElementById('resultTitle').style.color = win? 'var(--green-dark)' : 'var(--red)';
+  document.getElementById('resultScore').innerHTML =
+    `${t('prepareTpl', prepareTime.toFixed(2))}<br>${t('actionTpl', actionTime.toFixed(2))}`;
+  const hint = document.getElementById('resultHint');
+  const undoBtn = document.getElementById('btnResultUndo');
+  const againBtn = document.getElementById('btnPlayAgain');
+  if (win){
+    hint.classList.add('hidden');
+    undoBtn.classList.add('hidden');
+    againBtn.textContent = t('playAgainLabel2');
+    againBtn.onclick = ()=>{ overlay.classList.add('hidden'); dealNewGrid(); };
+    const totalTime = prepareTime + actionTime;
+    const nameInput = document.getElementById('nameInput');
+    let scoreLine = '';
+    // Only the Timer Challenge mode counts toward the leaderboard — Zen mode is just for casual play.
+    if (settings.showTimer){
+      const score = computeScore(totalTime, undoCount);
+      const qualifies = willQualifyForLeaderboard(score);
+      const playerName = settings.playerName || '';
+      const { rank, isNewBest, id } = addScoreToLeaderboard(score, totalTime, undoCount, 'timer', playerName);
+      scoreLine = `${t('scoreLabel')}: <b>${score}</b>` + (isNewBest ? ` 🏆 ${t('newBestLabel')}` : rank ? ` (${t('rankLabel', rank)})` : '');
+      if (qualifies){
+        nameInput.classList.remove('hidden');
+        nameInput.value = playerName;
+        nameInput.placeholder = t('enterNameLabel');
+        nameInput.oninput = ()=>{
+          const name = nameInput.value.trim().slice(0,16);
+          settings.playerName = name; saveSettings();
+          updateLeaderboardEntryName(id, name);
+        };
+      } else {
+        nameInput.classList.add('hidden');
+        nameInput.oninput = null;
+      }
+    } else {
+      nameInput.classList.add('hidden');
+      nameInput.oninput = null;
+    }
+    document.getElementById('resultScore').innerHTML =
+      `${scoreLine ? scoreLine+'<br>' : ''}${t('prepareTpl', prepareTime.toFixed(2))}<br>${t('actionTpl', actionTime.toFixed(2))}`;
+  } else {
+    document.getElementById('nameInput').classList.add('hidden');
+    hint.textContent = t('stuckHint');
+    hint.classList.remove('hidden');
+    const canUndo = history.length>0;
+    undoBtn.classList.toggle('hidden', !canUndo);
+    undoBtn.textContent = t('retryUndoLabel');
+    undoBtn.onclick = ()=>{ undo(); };
+    againBtn.textContent = t('retryNewLabel');
+    againBtn.onclick = ()=>{ overlay.classList.add('hidden'); dealNewGrid(); };
+  }
+  overlay.classList.remove('hidden');
+  (win? sfx.win: sfx.lose)();
+}
+
+/* ========================= Screens ========================= */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function enterGame(showTimerMode){
+  settings.showTimer = showTimerMode; saveSettings();
+  showScreen('gameScreen');
+  dealNewGrid();
+  startTimerLoop();
+}
+
+function startFlow(showTimerMode){
+  if (!settings.tutorialDone){
+    pendingMode = showTimerMode;
+    document.getElementById('tutorialIntro').classList.remove('hidden');
+  } else {
+    enterGame(showTimerMode);
+  }
+}
+let pendingMode=false;
+
+/* ========================= Tutorial ========================= */
+const TUT_GRID = [
+  [{color:0,shape:0,count:0},{color:1,shape:1,count:1},{color:2,shape:0,count:1}],
+  [{color:0,shape:1,count:1},{color:1,shape:0,count:2},{color:2,shape:2,count:0}],
+  [{color:2,shape:0,count:1},{color:2,shape:2,count:0},{color:0,shape:2,count:0}],
+];
+// note: TUT_GRID[x][y]
+const TUT_STEPS = [
+  {from:{x:0,y:0}, to:{x:1,y:0}, key:'sameColor'},
+  {from:{x:1,y:0}, to:{x:1,y:1}, key:'sameType'},
+  {from:{x:1,y:1}, to:{x:2,y:1}, key:'sameNumber'},
+];
+let tutStep=0;
+function tutRenderGrid(){
+  board = TUT_GRID.map(col=>col.map(id=>({identity:id, stack:1})));
+  selected=null; availableTargets=[]; gstate='prepare'; movesMade=0; history=[];
+  renderBoard();
+}
+let tutManualEntry=false;
+let attrIntroManual=false;
+function openAttrIntro(manual){
+  attrIntroManual = manual;
+  document.getElementById('tutorialIntro').classList.add('hidden');
+  document.getElementById('attrIntroOverlay').classList.remove('hidden');
+}
+function runTutorial(manual){
+  tutManualEntry = !!manual;
+  tutActive=true;
+  document.getElementById('tutorialIntro').classList.add('hidden');
+  showScreen('gameScreen');
+  document.getElementById('timerText').style.visibility='hidden';
+  tutStep=0;
+  tutRenderGrid();
+  tutShowStep();
+}
+function tutClearMask(){ document.querySelectorAll('.cell.spotlight').forEach(c=>c.classList.remove('spotlight')); }
+function tutShowStep(){
+  tutClearMask();
+  selected=null; availableTargets=[];
+  renderBoard();
+  document.getElementById('explainPanel').classList.add('hidden');
+  if (tutStep>=TUT_STEPS.length){ tutFinish(); return; }
+  const step = TUT_STEPS[tutStep];
+  cellEl(step.from.x, step.from.y).classList.add('spotlight');
+  const panel = document.getElementById('explainPanel');
+  panel.textContent = t('tutorialTapSource');
+  panel.classList.remove('hidden');
+  tutWaitingSource=true;
+}
+let tutWaitingSource=true;
+function tutHandleClick(x,y){
+  if (tutStep>=TUT_STEPS.length) return;
+  const step = TUT_STEPS[tutStep];
+  if (tutWaitingSource){
+    if (x===step.from.x && y===step.from.y){
+      tutWaitingSource=false;
+      tutClearMask();
+      selected = step.from; availableTargets=[step.to];
+      renderBoard();
+      document.getElementById('explainPanel').textContent = t('tutorialTapTarget');
+    }
+  } else {
+    if (x===step.to.x && y===step.to.y){
+      document.getElementById('explainPanel').textContent = t(step.key);
+      doMove(step.from, step.to, true);
+      tutStep++;
+      setTimeout(tutShowStep, 1400);
+    }
+  }
+}
+function tutFinish(){
+  document.getElementById('explainPanel').classList.remove('hidden');
+  document.getElementById('explainPanel').textContent = t('tutorialFinish');
+  setTimeout(()=>{
+    tutActive=false;
+    settings.tutorialDone=true; saveSettings();
+    document.getElementById('explainPanel').classList.add('hidden');
+    if (tutManualEntry) showScreen('startScreen');
+    else enterGame(pendingMode);
+  }, 1800);
+}
+
+/* ========================= Settings UI wiring ========================= */
+function refreshSettingsUI(){
+  document.getElementById('toggleTimer').classList.toggle('on', settings.showTimer);
+  document.getElementById('toggleSound').classList.toggle('on', settings.sound);
+  document.getElementById('langSelect').value = settings.lang;
+}
+function openSettings(){ refreshSettingsUI(); document.getElementById('settingsOverlay').classList.remove('hidden'); }
+
+/* ========================= Leaderboard UI wiring ========================= */
+function fmtDate(ts){
+  const d = new Date(ts);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+function renderLeaderboard(){
+  const el = document.getElementById('leaderboardList');
+  let list;
+  try{
+    list = loadLeaderboard();
+    if (!Array.isArray(list)) throw new Error('bad data');
+  }catch(e){
+    list = []; clearLeaderboard();
+  }
+  if (list.length===0){
+    el.innerHTML = `<div class="score">${t('noRecordsLabel')}</div>`;
+    return;
+  }
+  try{
+    el.innerHTML = list.map((e,i)=>{
+      const modeTag = e.mode==='timer' ? t('modeTimerLabel') : t('modeZenLabel');
+      const name = e.name ? e.name : t('anonymousLabel');
+      const totalTime = Number(e.totalTime)||0;
+      const undoUsed = Number(e.undoUsed)||0;
+      return `<div class="lbRow">
+        <div class="lbRank">${i+1}</div>
+        <div class="lbScore">${e.score}</div>
+        <div class="lbMeta">${escapeHtml(name)} · ${modeTag} · ${totalTime.toFixed(2)}s · ${t('undoUsedLabel', undoUsed)} · ${fmtDate(e.date)}</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML = `<div class="score">${t('noRecordsLabel')}</div>`;
+  }
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
+function openLeaderboard(){ renderLeaderboard(); document.getElementById('leaderboardOverlay').classList.remove('hidden'); }
+
+/* ========================= Wire up events ========================= */
+window.addEventListener('DOMContentLoaded', ()=>{
+  loadSettings();
+  applyI18nStatic();
+
+  document.getElementById('btnStartZen').onclick = ()=>startFlow(false);
+  document.getElementById('btnStartTimer').onclick = ()=>startFlow(true);
+  document.getElementById('settingsBtnStart').onclick = openSettings;
+  document.getElementById('btnSettingsGame').onclick = openSettings;
+  document.getElementById('closeSettings').onclick = ()=>document.getElementById('settingsOverlay').classList.add('hidden');
+
+  document.getElementById('btnOpenLeaderboard').onclick = openLeaderboard;
+  document.getElementById('btnOpenTutorial').onclick = ()=>openAttrIntro(true);
+  document.getElementById('closeLeaderboard').onclick = ()=>document.getElementById('leaderboardOverlay').classList.add('hidden');
+  document.getElementById('btnClearRecords').onclick = ()=>{
+    if (confirm(t('confirmClearLabel'))){ clearLeaderboard(); renderLeaderboard(); }
+  };
+  // tapping the dimmed backdrop (not the panel itself) dismisses these overlays, so they never feel stuck
+  ['settingsOverlay','leaderboardOverlay'].forEach(id=>{
+    document.getElementById(id).addEventListener('click', (e)=>{
+      if (e.target.id===id) document.getElementById(id).classList.add('hidden');
+    });
+  });
+
+  document.getElementById('btnTutorialGo').onclick = ()=>openAttrIntro(false);
+  document.getElementById('btnAttrIntroNext').onclick = ()=>{
+    document.getElementById('attrIntroOverlay').classList.add('hidden');
+    runTutorial(attrIntroManual);
+  };
+
+  document.getElementById('btnHome').onclick = ()=>{ if (animating) return; clearInterval(timerInterval); showScreen('startScreen'); };
+  document.getElementById('btnUndo').onclick = ()=>{ if (animating) return; undo(); };
+  document.getElementById('btnReshuffle').onclick = ()=>{ if (animating) return; document.getElementById('resultOverlay').classList.add('hidden'); dealNewGrid(); };
+
+  document.getElementById('btnToHome').onclick = ()=>{ document.getElementById('resultOverlay').classList.add('hidden'); clearInterval(timerInterval); showScreen('startScreen'); };
+
+  document.getElementById('langSelect').onchange = (e)=>{ settings.lang=e.target.value; lang=settings.lang; saveSettings(); applyI18nStatic(); };
+  document.getElementById('toggleTimer').onclick = ()=>{ settings.showTimer=!settings.showTimer; saveSettings(); refreshSettingsUI(); };
+  document.getElementById('toggleSound').onclick = ()=>{ settings.sound=!settings.sound; saveSettings(); refreshSettingsUI(); };
+  document.getElementById('btnReset').onclick = ()=>{
+    settings = { lang:'zhTW', showTimer:false, sound:true, tutorialDone:false, playerName:'' };
+    saveSettings(); lang=settings.lang; applyI18nStatic(); refreshSettingsUI();
+  };
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+});
+</script>
+</body>
+</html>
